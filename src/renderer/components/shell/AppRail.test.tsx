@@ -25,7 +25,7 @@ const reticulumSections = computeNavSections(
 );
 
 describe('AppRail', () => {
-  it('lists the five sections, then Incident and App', () => {
+  it('lists Boards after Chat on the MeshCore rail, then the existing sections', () => {
     render(
       <AppRail
         sections={meshcoreSections}
@@ -36,7 +36,16 @@ describe('AppRail', () => {
     );
     const nav = screen.getByRole('navigation', { name: 'Application panels' });
     const names = Array.from(nav.querySelectorAll('button')).map((b) => b.getAttribute('title'));
-    expect(names).toEqual(['Chat', 'Network', 'Map', 'Monitor', 'Device', 'Incident', 'App']);
+    expect(names).toEqual([
+      'Chat',
+      'Boards',
+      'Network',
+      'Map',
+      'Monitor',
+      'Device',
+      'Incident',
+      'App',
+    ]);
   });
 
   it('keeps Incident and App outside the scrolling part of the rail (EMCOMM S9)', () => {

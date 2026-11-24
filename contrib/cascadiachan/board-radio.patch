@@ -1,0 +1,13 @@
+diff --git a/message_processing.py b/message_processing.py
+--- a/message_processing.py
++++ b/message_processing.py
+@@ -2429,3 +2429,8 @@ def _process_message(sender_id, message, interface, is_sync_message=False, sender_node_id=None):
+-    if not is_sync_message:
++    if not is_sync_message and message.startswith("!cc1 "):
++        from cascadia_board_radio import handle_radio_board
++        handle_radio_board(message, sender_node_id, interface)
++        return
++
++    if not is_sync_message:
+         # Before anything they typed is acted on, so a stranger's first
+         # message gets an answer that says where they have arrived and then

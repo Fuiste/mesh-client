@@ -16,6 +16,7 @@ import { PanelLauncher } from './PanelLauncher';
 const LABELS: Record<string, string> = {
   'tabs.connection': 'Connection',
   'tabs.chat': 'Chat',
+  'tabs.boards': 'Boards',
   'tabs.friends': 'Friends',
   'tabs.scheduledbroadcasts': 'Broadcasts',
   'tabs.contacts': 'Contacts',
@@ -139,10 +140,10 @@ describe('PanelLauncher', () => {
     );
   });
 
-  it('lists all 23 MeshCore panels grouped by section', () => {
+  it('lists all 24 MeshCore panels grouped by section', () => {
     renderLauncher();
     const dialog = screen.getByRole('dialog', { name: 'All panels' });
-    expect(within(dialog).getByText('23 panels')).toBeInTheDocument();
+    expect(within(dialog).getByText('24 panels')).toBeInTheDocument();
     for (const group of ['Chat', 'Network', 'Monitor', 'Device', 'Other']) {
       expect(within(dialog).getByRole('region', { name: group })).toBeInTheDocument();
     }
@@ -156,6 +157,7 @@ describe('PanelLauncher', () => {
     const monitor = within(dialog).getByRole('region', { name: 'Monitor' });
     expect(within(monitor).getByRole('button', { name: 'Graph' })).toBeInTheDocument();
     const other = within(dialog).getByRole('region', { name: 'Other' });
+    expect(within(other).getByRole('button', { name: 'Boards' })).toBeInTheDocument();
     expect(within(other).getByRole('button', { name: 'Map' })).toBeInTheDocument();
     expect(within(other).getByRole('button', { name: 'Incident' })).toBeInTheDocument();
   });

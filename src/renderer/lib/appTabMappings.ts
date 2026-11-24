@@ -5,6 +5,7 @@ import { TAB_SLOT_IDS, type TabIconSlotId } from './tabSlotIds';
 import type { MeshProtocol } from './types';
 
 export const CHAT_PANEL_INDEX = TAB_SLOT_IDS.indexOf('Chat');
+export const BOARDS_PANEL_INDEX = TAB_SLOT_IDS.indexOf('Boards');
 export const FRIENDS_PANEL_INDEX = TAB_SLOT_IDS.indexOf('Friends');
 export const INCIDENT_PANEL_INDEX = TAB_SLOT_IDS.indexOf('Incident');
 export const GAMES_PANEL_INDEX = TAB_SLOT_IDS.indexOf('Games');
@@ -71,6 +72,7 @@ export const TAB_CAPABILITY_REQUIREMENTS: (TabCapabilityRequirement | undefined)
   undefined, // ScheduledBroadcasts
   undefined, // TeamContacts
   undefined, // TeamRoster
+  'hasContactImportExport', // CascadiaChan uses encrypted MeshCore contact DMs.
 ];
 
 function tabVisible(

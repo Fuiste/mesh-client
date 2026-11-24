@@ -1,0 +1,308 @@
+.cascadia-board {
+  --board-pine: color-mix(in srgb, var(--color-green-300) 72%, var(--color-ink-100));
+  --board-paper: color-mix(in srgb, var(--color-deep-black) 94%, var(--color-green-900));
+  --board-side: color-mix(in srgb, var(--color-sidebar-active-bg) 85%, var(--color-green-900));
+  --board-rule: var(--color-secondary-dark);
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--color-ink-100);
+  background: var(--board-paper);
+}
+
+.cascadia-board :is(button, input, textarea):focus-visible {
+  outline: 2px solid var(--color-brand-green);
+  outline-offset: -2px;
+}
+.cascadia-board button {
+  cursor: pointer;
+}
+.cascadia-board button:disabled {
+  opacity: 0.54;
+  cursor: default;
+}
+.cascadia-board svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.cascadia-board .board-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  padding: 1rem clamp(1rem, 3cqw, 2rem);
+  background: color-mix(in srgb, var(--color-green-900) 56%, var(--color-ink-900));
+  color: var(--color-ink-50);
+}
+.cascadia-board .board-banner::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -10% 0 0 44%;
+  background: repeating-radial-gradient(
+    ellipse at 90% 150%,
+    transparent 0 1.5rem,
+    color-mix(in srgb, var(--board-pine) 13%, transparent) 1.54rem,
+    transparent 1.61rem
+  );
+}
+.cascadia-board .board-brand,
+.cascadia-board .board-station,
+.cascadia-board .board-status > span:first-child {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.cascadia-board .board-brand svg {
+  color: var(--board-pine);
+  width: 1.7rem;
+  height: 1.7rem;
+}
+.cascadia-board .board-brand h1 {
+  font:
+    bold clamp(1.95rem, 4.7cqw, 3rem) / 1 Georgia,
+    serif;
+  letter-spacing: -0.055em;
+}
+.cascadia-board .board-brand em {
+  color: var(--board-pine);
+}
+.cascadia-board .board-station,
+.cascadia-board .board-meta,
+.cascadia-board .board-count,
+.cascadia-board .board-row small,
+.cascadia-board .board-path,
+.cascadia-board .board-budget,
+.cascadia-board .board-status,
+.cascadia-board .board-saved {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-label);
+}
+.cascadia-board .board-station span {
+  color: var(--board-pine);
+}
+.cascadia-board .board-toolbar,
+.cascadia-board .board-index-head,
+.cascadia-board .board-path,
+.cascadia-board .board-status,
+.cascadia-board .board-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.cascadia-board .board-toolbar {
+  padding: 0 clamp(0.75rem, 2cqw, 1.5rem);
+  border-bottom: 1px solid var(--board-rule);
+  flex: none;
+}
+.cascadia-board .board-toolbar nav {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+.cascadia-board .board-toolbar nav button {
+  border-bottom: 3px solid transparent;
+  padding: 0.7rem 0 0.5rem;
+  color: var(--color-muted);
+}
+.cascadia-board .board-toolbar nav button[aria-pressed='true'] {
+  border-color: var(--board-pine);
+  color: var(--board-pine);
+  font-weight: 600;
+}
+.cascadia-board .board-command,
+.cascadia-board .board-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-control);
+  padding: 0.32rem 0.65rem;
+  font-size: var(--text-label);
+}
+.cascadia-board .board-command {
+  border: 1px solid var(--board-rule);
+  background: var(--board-paper);
+  color: var(--board-pine);
+}
+.cascadia-board .board-command:hover:enabled {
+  border-color: var(--board-pine);
+}
+.cascadia-board .board-primary {
+  background: var(--board-pine);
+  color: var(--color-ink-950);
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+}
+.cascadia-board .board-split {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(12rem, 31%) minmax(0, 1fr);
+}
+.cascadia-board .board-index,
+.cascadia-board .board-reader {
+  min-width: 0;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+}
+.cascadia-board .board-index {
+  background: var(--board-side);
+  border-inline-end: 1px solid var(--board-rule);
+}
+.cascadia-board .board-index-head {
+  padding: 0.8rem;
+}
+.cascadia-board .board-index-head h2 {
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.cascadia-board .board-row {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--board-rule);
+  text-align: start;
+}
+.cascadia-board .board-row strong {
+  display: block;
+  font-weight: 600;
+}
+.cascadia-board .board-row:hover:enabled,
+.cascadia-board .board-row[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--board-pine) 12%, var(--board-side));
+}
+.cascadia-board .board-row[aria-pressed='true'] {
+  box-shadow: inset 0.16rem 0 var(--board-pine);
+}
+.cascadia-board .board-row small,
+.cascadia-board .board-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.55rem;
+  color: var(--color-muted);
+}
+.cascadia-board .board-row small {
+  margin-top: 0.3rem;
+}
+.cascadia-board .board-pager {
+  margin: 0.8rem;
+}
+.cascadia-board .board-reader {
+  padding: 1.25rem clamp(1rem, 3cqw, 2rem);
+}
+.cascadia-board .board-reader h2 {
+  font:
+    600 clamp(1.55rem, 3.3cqw, 2.15rem) / 1.15 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+}
+.cascadia-board .board-path {
+  color: var(--color-muted);
+  margin-bottom: 0.45rem;
+}
+.cascadia-board .board-path > :first-child,
+.cascadia-board .board-meta strong,
+.cascadia-board .board-saved {
+  color: var(--board-pine);
+}
+.cascadia-board .board-message {
+  border-bottom: 1px solid var(--board-rule);
+  padding: 0.85rem 0;
+}
+.cascadia-board .board-message p {
+  white-space: pre-wrap;
+  line-height: 1.5;
+  margin-top: 0.3rem;
+}
+.cascadia-board .board-post-number {
+  color: var(--color-orange-300);
+}
+.cascadia-board .board-actions {
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+.cascadia-board .board-count,
+.cascadia-board .board-hint {
+  color: var(--color-muted);
+}
+.cascadia-board .board-count {
+  margin-top: 0.65rem;
+}
+.cascadia-board .board-hint {
+  margin: 0.8rem 0;
+}
+.cascadia-board .board-index .board-hint {
+  margin-inline: 0.85rem;
+}
+.cascadia-board .board-composer {
+  border-top: 2px solid var(--board-pine);
+  padding-top: 0.8rem;
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.cascadia-board .board-composer label {
+  font-weight: 500;
+}
+.cascadia-board .board-composer :is(input, textarea) {
+  display: block;
+  margin-top: 0.3rem;
+  font-weight: 400;
+}
+.cascadia-board .board-composer .board-actions {
+  margin-top: 0;
+}
+.cascadia-board .board-budget {
+  margin-inline-end: auto;
+  color: var(--color-muted);
+}
+.cascadia-board .board-status {
+  flex: none;
+  border-top: 1px solid var(--board-rule);
+  padding: 0.45rem 0.8rem;
+  background: var(--board-side);
+  color: var(--color-muted);
+}
+.cascadia-board .board-error {
+  color: var(--color-red-300);
+}
+.cascadia-board .board-back {
+  display: none;
+}
+
+@container (max-width: 31rem) {
+  .cascadia-board .board-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cascadia-board[data-pane='read'] .board-index,
+  .cascadia-board[data-pane='list'] .board-reader {
+    display: none;
+  }
+  .cascadia-board .board-back {
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+  }
+  .cascadia-board .board-reader {
+    padding: 1rem;
+  }
+}
+@media (pointer: coarse) {
+  .cascadia-board button {
+    min-height: 2.75rem;
+  }
+}

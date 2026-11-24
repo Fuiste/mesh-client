@@ -28,6 +28,7 @@ export const TAB_SLOT_IDS = [
   'ScheduledBroadcasts',
   'TeamContacts',
   'TeamRoster',
+  'Boards',
 ] as const;
 
 export type TabSlotId = (typeof TAB_SLOT_IDS)[number];

@@ -268,6 +268,7 @@ import {
 import {
   AdminPanel,
   AppPanel,
+  CascadiaBoardPanel,
   ChannelUtilizationChart,
   DiagnosticsPanel,
   FriendsPanel,
@@ -313,6 +314,7 @@ import {
 import {
   ADMIN_PANEL_INDEX,
   APP_PANEL_INDEX,
+  BOARDS_PANEL_INDEX,
   CHAT_PANEL_INDEX,
   computeTabMappings,
   DIAGNOSTICS_PANEL_INDEX,
@@ -1048,6 +1050,7 @@ function AppContent() {
   const [roomsTabVisited, setRoomsTabVisited] = useState(false);
   const [gamesTabVisited, setGamesTabVisited] = useState(false);
   const [rrcTabVisited, setRrcTabVisited] = useState(false);
+  const [boardsVisited, setBoardsVisited] = useState(false);
   const [remoteTabVisited, setRemoteTabVisited] = useState(false);
   const [nomadTabVisited, setNomadTabVisited] = useState(false);
   const [peersTabVisited, setPeersTabVisited] = useState(false);
@@ -2628,6 +2631,12 @@ function AppContent() {
   );
 
   const activePanelIndex = tabIndexToPanelIndex[activeTab] ?? 0;
+  useEffect(() => {
+    if (activePanelIndex === BOARDS_PANEL_INDEX) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- keep pending RF operations alive when returning to chat
+      setBoardsVisited(true);
+    }
+  }, [activePanelIndex]);
 
   // Two-level navigation (issue #1062): rail sections over the same capability-gated tab list.
   const activeTabMappings = selectByProtocol(tabsByProtocol, protocol);
@@ -7379,6 +7388,30 @@ function AppContent() {
                             </Suspense>
                           </ErrorBoundary>
                         ) : null}
+                      </div>
+                      <div
+                        id={`panel-${BOARDS_PANEL_INDEX}`}
+                        role="tabpanel"
+                        aria-label={t('tabs.boards')}
+                        hidden={activePanelIndex !== BOARDS_PANEL_INDEX}
+                        className="h-full w-full min-w-0"
+                      >
+                        {(boardsVisited || activePanelIndex === BOARDS_PANEL_INDEX) && (
+                          <ErrorBoundary>
+                            <Suspense fallback={<PanelSkeleton />}>
+                              <CascadiaBoardPanel
+                                key={meshcoreIdentityId ?? 'offline'}
+                                identityId={meshcoreIdentityId}
+                                connected={
+                                  meshcoreLinkStatus === 'configured' ||
+                                  meshcoreLinkStatus === 'stale'
+                                }
+                                radioLabel={meshcoreRuntime.selfInfo?.name ?? 'MeshCore'}
+                                importContact={meshcorePanelActions.importContactFromQr}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
+                        )}
                       </div>
                       <div
                         id={`panel-${TEAM_ROSTER_PANEL_INDEX}`}

@@ -1,5 +1,6 @@
 import { MESHCORE_ROOM_MESSAGE_CHANNEL } from '@/renderer/hooks/meshcore/meshcoreHookPreamble';
 
+import { isCascadiaBoardResponse } from './cascadiaBoardIdentity';
 import {
   resolveMeshcoreNodeIdFromFourBytePubKeyPrefix,
   resolveMeshcoreNodeIdFromPubKeyPrefix,
@@ -115,6 +116,9 @@ export function decodeMeshcoreDirectMessageEvents(
   }
   const prefix = pubKeyPrefixHex(raw.pubKeyPrefix);
   const senderId = resolveSenderIdFromPrefix(prefix, nodeIdByPrefix);
+  if (isCascadiaBoardResponse(raw.text, prefix, senderId, raw.txtType)) {
+    return [{ type: 'meshcore_board_response', payload: { text: raw.text } }];
+  }
   const isSignedPlain = raw.txtType === MESHCORE_TXT_TYPE_SIGNED_PLAIN;
   if (isSignedPlain && senderId !== 0) {
     (roomNodeIds as Set<number>).add(senderId);

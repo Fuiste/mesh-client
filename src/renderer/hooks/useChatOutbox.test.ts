@@ -199,8 +199,17 @@ describe('useChatOutbox', () => {
   it('queue adds a row and triggers drain when connected', async () => {
     const sendFn = vi.fn().mockResolvedValue(undefined);
     const entry = makeEntry({ id: 99, status: 'queued' });
-    vi.mocked(mockOutbox.add).mockResolvedValue(entry);
-    vi.mocked(mockOutbox.list).mockResolvedValue([entry]);
+    // Mount also drains. Only the later queue operation should see this row.
+    let queued = false;
+    vi.mocked(mockOutbox.list).mockImplementation(() => Promise.resolve(queued ? [entry] : []));
+    vi.mocked(mockOutbox.add).mockImplementationOnce(() => {
+      queued = true;
+      return Promise.resolve(entry);
+    });
+    vi.mocked(mockOutbox.remove).mockImplementationOnce(() => {
+      queued = false;
+      return Promise.resolve();
+    });
     const { result } = renderHook(() =>
       useChatOutbox({ protocol: 'meshtastic', isSendAvailable: true, sendFn }),
     );
@@ -220,6 +229,7 @@ describe('useChatOutbox', () => {
     });
     await waitFor(() => {
       expect(sendFn).toHaveBeenCalled();
+      expect(mockOutbox.remove).toHaveBeenCalledWith(entry.id);
     });
   });
 

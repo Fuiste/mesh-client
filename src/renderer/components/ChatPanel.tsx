@@ -72,6 +72,7 @@ import {
 } from '@/renderer/lib/autoResend/autoResendController';
 import { REGULAR_MESSAGE_MAX_AUTO_RESENDS } from '@/renderer/lib/autoResend/autoResendPolicy';
 import { BUNDLED_EMOJI_DATA_SOURCE } from '@/renderer/lib/bundledEmojiData';
+import { CASCADIACHAN_PUBLIC_KEY } from '@/renderer/lib/cascadiaBoardIdentity';
 import {
   channelSecurityLevel,
   channelSecurityLevelI18nKey,
@@ -350,7 +351,6 @@ function chatPanelIsLinux(): boolean {
 
 /** Last-read key for the Starred list. Distinct from `ch:` / `dm:` thread watermarks. */
 const STARRED_READ_KEY_PREFIX = 'star:';
-const CASCADIACHAN_PUBLIC_KEY = 'e96c285c22edb90b25b6e7b34f1357b4b5cc9ac8d0c79b8606688ca14a162cdf';
 
 /** Toolbar icon button with Electron-friendly HelpTooltip (native `title` does not show). */
 const CHAT_TOOLBAR_BUTTON_BASE =

@@ -1,5 +1,6 @@
 import {
   Blocks,
+  BookOpen,
   ChartBar,
   ChartPie,
   Code,
@@ -44,6 +45,8 @@ export function TabIcon({ name }: { name: string }) {
       return <Link2 {...p} />;
     case 'Chat':
       return <MessageCircle {...p} />;
+    case 'Boards':
+      return <BookOpen {...p} />;
     case 'Friends':
       return <Heart {...p} />;
     case 'ScheduledBroadcasts':
@@ -110,6 +113,8 @@ export function NavSectionIcon({ id }: { id: NavSectionId }) {
   switch (id) {
     case 'chat':
       return <MessageCircle {...p} />;
+    case 'boards':
+      return <BookOpen {...p} />;
     case 'network':
       return <Network {...p} />;
     case 'map':

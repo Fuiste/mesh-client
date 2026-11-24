@@ -68,6 +68,7 @@ describe('computeNavSections', () => {
     // Telemetry sits with the device it reports on; TAK is a network bridge, not a device.
     expect(slotsBySection(PROTOCOLS[1])).toEqual({
       chat: ['Chat', 'Friends', 'Rooms'],
+      boards: ['Boards'],
       network: [
         'Nodes',
         'TeamContacts',
@@ -97,6 +98,11 @@ describe('computeNavSections', () => {
   it('shows no Nomad rail entry on protocols without Nomad Network', () => {
     expect(slotsBySection(PROTOCOLS[0]).nomad).toBeUndefined();
     expect(slotsBySection(PROTOCOLS[1]).nomad).toBeUndefined();
+  });
+
+  it('shows Boards only on contact DM radios', () => {
+    expect(slotsBySection(PROTOCOLS[0]).boards).toBeUndefined();
+    expect(slotsBySection(PROTOCOLS[2]).boards).toBeUndefined();
   });
 
   it('keeps Meshtastic Modules in Device', () => {

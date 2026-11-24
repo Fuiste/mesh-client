@@ -1,3 +1,4 @@
+import { isCascadiaBoardResponse } from '@/renderer/lib/cascadiaBoardIdentity';
 import { packetRouter } from '@/renderer/lib/drivers/PacketRouter';
 import { errLikeToLogString } from '@/renderer/lib/errLikeToLogString';
 import {
@@ -92,6 +93,14 @@ export function processMeshcoreWaitingMessageItem(
       }
       if (isMeshcoreTransportStatusChatLine(d.text)) {
         deps.logTransportLineAsDevice(d.text);
+      } else if (
+        deps.meshcoreIdentityId &&
+        isCascadiaBoardResponse(d.text, prefix, senderId, d.txtType)
+      ) {
+        packetRouter.dispatch(
+          { type: 'meshcore_board_response', payload: { text: d.text } },
+          deps.meshcoreIdentityId,
+        );
       } else if (sender?.hw_model === 'Room') {
         // Room posts route through PacketRouter → meshcoreIngest, matching live event-7 posts.
         const postTs = effectiveMessageTimestampMs(d.senderTimestamp * 1000);

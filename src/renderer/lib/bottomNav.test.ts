@@ -45,7 +45,7 @@ describe('splitBottomNavSections', () => {
     expect(sections.some((s) => s.id === 'incident')).toBe(true);
     const { primary, overflow } = splitBottomNavSections(sections);
     expect(primary.map((s) => s.id)).toEqual(['chat', 'network', 'map', 'incident']);
-    expect(overflow.map((s) => s.id)).toEqual(['monitor', 'device', 'app']);
+    expect(overflow.map((s) => s.id)).toEqual(['boards', 'monitor', 'device', 'app']);
   });
 
   it('skips bottom bar sections a protocol does not have', () => {

@@ -8,11 +8,12 @@ import { TAB_SLOT_IDS, type TabIconSlotId, type TabSlotId } from './tabSlotIds';
  * this module only groups the visible tabs.
  */
 export type NavSectionId =
-  'chat' | 'network' | 'map' | 'nomad' | 'monitor' | 'device' | 'incident' | 'app';
+  'chat' | 'boards' | 'network' | 'map' | 'nomad' | 'monitor' | 'device' | 'incident' | 'app';
 
 /** Rail order, top to bottom. `incident` and `app` sit at the bottom of the rail. */
 export const NAV_SECTION_ORDER: readonly NavSectionId[] = [
   'chat',
+  'boards',
   'network',
   'map',
   'nomad',
@@ -31,6 +32,7 @@ export const NAV_FOOTER_SECTIONS: ReadonlySet<NavSectionId> = new Set(['incident
  */
 export const NAV_SECTION_LABEL_KEYS: Record<NavSectionId, string> = {
   chat: 'tabs.chat',
+  boards: 'tabs.boards',
   network: 'tabs.network',
   map: 'tabs.map',
   nomad: 'tabs.nomadnetwork',
@@ -54,6 +56,7 @@ export const NAV_SECTION_RAIL_LABEL_KEYS: Partial<Record<NavSectionId, string>> 
  */
 const SECTION_SLOT_ORDER: Record<NavSectionId, readonly TabSlotId[]> = {
   chat: ['Chat', 'Friends', 'Rooms', 'RRC', 'Games'],
+  boards: ['Boards'],
   network: [
     'Nodes',
     'TeamContacts',
