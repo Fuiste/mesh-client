@@ -202,16 +202,20 @@ export function attachMeshcoreProtocolIngress(
   setConnection(identityId, { status: 'connecting', connectionType });
   setActiveIdentity(identityId);
 
-  const teardown = meshcoreProtocol.subscribe(conn, (event) => {
-    try {
-      packetRouter.dispatch(event, identityId);
-    } catch (err) {
-      console.error(
-        'mcL0876 [meshIdentityBridge] packetRouter.dispatch failed:',
-        err instanceof Error ? err.message : String(err),
-      );
-    }
-  });
+  const teardown = meshcoreProtocol.subscribe(
+    conn,
+    (event) => {
+      try {
+        packetRouter.dispatch(event, identityId);
+      } catch (err) {
+        console.error(
+          'mcL0876 [meshIdentityBridge] packetRouter.dispatch failed:',
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    },
+    identityId,
+  );
   const detachDriver = connectionDriver.registerExternalTransport(
     identityId,
     meshcoreProtocol,

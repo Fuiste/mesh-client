@@ -64,7 +64,10 @@ interface Exchange {
 export class BoardRadio {
   private pending?: Exchange;
   private disposed = false;
-  constructor(private readonly sendDm: (text: string) => Promise<void>) {}
+  constructor(
+    private readonly sendDm: (text: string) => Promise<void>,
+    private readonly acquire?: (rid: string) => () => void,
+  ) {}
 
   ensureAvailable() {
     if (this.disposed) throw new Error('board session closed');
@@ -75,6 +78,7 @@ export class BoardRadio {
     this.ensureAvailable();
     const text = frame(rid, command);
     if (byteLength(text) > BOARD_FRAME_BYTES) throw new Error('request exceeds one radio message');
+    const release = this.acquire?.(rid);
     return new Promise((resolve, reject) => {
       let idle: ReturnType<typeof setTimeout>;
       const timeout = () => {
@@ -91,6 +95,7 @@ export class BoardRadio {
           if (this.pending !== exchange) return;
           clearTimeout(idle);
           this.pending = undefined;
+          release?.();
           if (response) resolve(response);
           else reject(err ?? new Error('board request failed'));
         },

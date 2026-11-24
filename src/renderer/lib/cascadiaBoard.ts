@@ -1,3 +1,9 @@
+import {
+  type BoardHost,
+  boardSessionKey,
+  DEFAULT_BOARD_HOST,
+  legacyBoardKey,
+} from './cascadiaBoardHosts';
 import { CASCADIACHAN_PUBLIC_KEY } from './cascadiaBoardIdentity';
 import {
   boardId,
@@ -46,6 +52,8 @@ interface Cache {
 }
 interface Options {
   identityId: string;
+  host?: BoardHost;
+  acquire?: (rid: string) => () => void;
   sendDm: (text: string) => Promise<void>;
   storage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 }
@@ -128,10 +136,21 @@ function page(response: unknown[], type: 'list' | 'read') {
 }
 
 /** A client is scoped to the board and one local radio identity, including outstanding write IDs. */
-export function createBoardClient({ identityId, sendDm, storage = window.localStorage }: Options) {
-  const key = `mesh-client:cascadia-board:v1:${identityId}:${CASCADIACHAN_PUBLIC_KEY}`;
+export function createCc1BoardClient({
+  identityId,
+  host = DEFAULT_BOARD_HOST,
+  acquire,
+  sendDm,
+  storage = window.localStorage,
+}: Options) {
+  if (host.adapterId !== 'cc1') throw new Error('this board uses direct messages');
+  // Keep the exact original cache and unresolved-write journal for the built-in host.
+  const key =
+    host.publicKey === CASCADIACHAN_PUBLIC_KEY
+      ? legacyBoardKey(identityId)
+      : 'mesh-client:board-cache:v2:' + boardSessionKey(identityId, host);
   const writesKey = key + ':writes';
-  const radio = new BoardRadio(sendDm);
+  const radio = new BoardRadio(sendDm, acquire);
   let cache = emptyCache();
   try {
     const stored = storage.getItem(key);
@@ -368,4 +387,5 @@ export function createBoardClient({ identityId, sendDm, storage = window.localSt
     },
   };
 }
-export type BoardClient = ReturnType<typeof createBoardClient>;
+export { createCc1BoardClient as createBoardClient };
+export type BoardClient = ReturnType<typeof createCc1BoardClient>;

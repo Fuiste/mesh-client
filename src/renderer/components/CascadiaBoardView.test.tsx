@@ -43,12 +43,18 @@ function setup(online = true) {
     create: vi.fn<BoardClient['create']>().mockResolvedValue('d:2'),
   };
   const { container } = render(
-    <CascadiaBoardView client={client} online={online} radioLabel="test radio" />,
+    <CascadiaBoardView
+      client={client}
+      boardName="Test board"
+      online={online}
+      radioLabel="test radio"
+    />,
   );
   return { container, client, board };
 }
 
-const button = (name: string) => screen.getByRole('button', { name });
+const button = (name: string) =>
+  screen.getByRole('button', { name: (label) => label.toLowerCase() === name.toLowerCase() });
 
 describe('cascadiachan board view', () => {
   it('reads the cache offline, keeps a draft and disables radio actions', () => {
@@ -56,13 +62,13 @@ describe('cascadiachan board view', () => {
     expect(screen.getByText('two whips to trade')).toBeVisible();
     expect(button('refresh index')).toBeDisabled();
     fireEvent.click(button('reply'));
-    fireEvent.change(screen.getByRole('textbox', { name: 'your reply' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your reply' }), {
       target: { value: 'found one' },
     });
     expect(button('post reply')).toBeDisabled();
     fireEvent.click(button('Cancel'));
     fireEvent.click(button('reply'));
-    expect(screen.getByRole('textbox', { name: 'your reply' })).toHaveValue('found one');
+    expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue('found one');
     expect(client.reply).not.toHaveBeenCalled();
   });
 
@@ -76,14 +82,14 @@ describe('cascadiachan board view', () => {
         }),
     );
     fireEvent.click(button('reply'));
-    const draft = screen.getByRole('textbox', { name: 'your reply' });
+    const draft = screen.getByRole('textbox', { name: 'Your reply' });
     fireEvent.change(draft, { target: { value: '🌲'.repeat(40) } });
     expect(button('post reply')).toBeDisabled();
     fireEvent.change(draft, { target: { value: 'i can bring one' } });
     fireEvent.click(button('post reply'));
     expect(client.reply).toHaveBeenCalledWith('d:1', 'i can bring one');
     expect(button('post reply')).toBeDisabled();
-    expect(screen.getByRole('status')).toHaveTextContent('waiting for board confirmation');
+    expect(screen.getByRole('status')).toHaveTextContent('Waiting for board confirmation');
     await act(async () => {
       reject(new Error('radio timeout'));
       await Promise.resolve();
@@ -91,7 +97,7 @@ describe('cascadiachan board view', () => {
     expect(draft).toHaveValue('i can bring one');
     expect(screen.getByRole('status')).toHaveTextContent('radio timeout');
     fireEvent.click(button('post reply'));
-    expect(await screen.findByText('saved on ayanami')).toBeVisible();
+    expect(await screen.findByText('Saved on Test board')).toBeVisible();
   });
 
   it('loads more subjects on demand and treats bulletins as standalone notices', async () => {
@@ -102,14 +108,14 @@ describe('cascadiachan board view', () => {
     expect(client.refresh).toHaveBeenCalledWith('discussion', true);
     fireEvent.click(button('bulletins'));
     expect(client.read).not.toHaveBeenCalled();
-    expect(screen.queryByRole('button', { name: 'reply' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Reply' })).toBeNull();
     await user.click(button('fetch bulletin by radio'));
     expect(client.read).toHaveBeenCalledWith('b:1', false);
     fireEvent.click(button('new bulletin'));
-    fireEvent.change(screen.getByRole('textbox', { name: 'subject' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Subject' }), {
       target: { value: 'ridge net' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: 'message' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), {
       target: { value: 'listen at ten' },
     });
     await user.click(button('post bulletin'));
@@ -126,7 +132,7 @@ describe('cascadiachan board view', () => {
     const { client, board } = setup();
     const user = userEvent.setup();
     await user.click(button('reply'));
-    fireEvent.change(screen.getByRole('textbox', { name: 'your reply' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your reply' }), {
       target: { value: 'meant for antenna swap' },
     });
     client.refresh.mockImplementationOnce(() => {
@@ -134,7 +140,7 @@ describe('cascadiachan board view', () => {
       return Promise.resolve();
     });
     await user.click(button('refresh index'));
-    expect(screen.queryByRole('button', { name: 'post reply' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Post reply' })).toBeNull();
     expect(client.reply).not.toHaveBeenCalled();
   });
 });

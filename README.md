@@ -343,6 +343,8 @@ Operator guide: [MeshCore guide](docs/meshcore.md). MeshCore runs simultaneously
 
 - **Transmit queue**: status-bar badge (with tooltip) when the connected radio reports outbound queue depth (STATS).
 
+- Use **Boards** in this fork to read and post to independent cc1 boards over direct messages. [Host a MeshCore board](contrib/cascadiachan/README.md).
+
 **Contacts & Discovery**
 
 - Contact list with advert-based positions, contact types (Chat, Repeater, Room, Sensor), and GPS coordinates persisted to SQLite; contacts seed from DB on reconnect as a fallback cache

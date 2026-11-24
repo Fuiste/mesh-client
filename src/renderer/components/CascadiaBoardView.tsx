@@ -1,6 +1,6 @@
 import './CascadiaBoardView.css';
 
-import { ChevronLeft, Plus, Radio, RefreshCw, Reply, Trees } from 'lucide-react-motion';
+import { ChevronLeft, Plus, Radio, RefreshCw, Reply } from 'lucide-react-motion';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,6 +18,9 @@ import { StatusDot } from './ui/StatusDot';
 export interface CascadiaBoardViewProps {
   client: Pick<BoardClient, 'subscribe' | 'getSnapshot' | 'refresh' | 'read' | 'reply' | 'create'>;
   online: boolean;
+  boardName: string;
+  radioBusyBy?: string;
+  onBusyChange?: (busy: boolean) => void;
   radioLabel: string;
   offlineReason?: string;
 }
@@ -46,7 +49,15 @@ function BoardTime({ seconds }: { seconds: number }) {
   );
 }
 
-function BoardMessage({ post, label }: { post: BoardPost; label: string }) {
+function BoardMessage({
+  post,
+  label,
+  boardName,
+}: {
+  post: BoardPost;
+  label: string;
+  boardName: string;
+}) {
   const { t } = useTranslation();
   return (
     <article className="board-message">
@@ -56,13 +67,16 @@ function BoardMessage({ post, label }: { post: BoardPost; label: string }) {
         <BoardTime seconds={post.createdAt} />
       </header>
       <p>{post.body}</p>
-      {post.saved && <span className="board-saved">{t('cascadiaBoard.saved')}</span>}
+      {post.saved && (
+        <span className="board-saved">{t('cascadiaBoard.saved', { board: boardName })}</span>
+      )}
     </article>
   );
 }
 
 function BoardComposer({
   kind,
+  boardName,
   id,
   initial,
   pending,
@@ -72,6 +86,7 @@ function BoardComposer({
   onSend,
 }: {
   kind: BoardKind;
+  boardName: string;
   id?: string;
   initial: Draft;
   pending: boolean;
@@ -104,6 +119,7 @@ function BoardComposer({
         if (canPost) onSend({ subject: subject ?? '', body });
       }}
     >
+      <p className="board-recipient">{t('boardHosts.postTo', { board: boardName })}</p>
       {id === undefined && (
         <label>
           {t('cascadiaBoard.subject')}
@@ -161,6 +177,9 @@ function BoardComposer({
 
 export function CascadiaBoardView({
   client,
+  boardName,
+  radioBusyBy,
+  onBusyChange,
   online,
   radioLabel,
   offlineReason,
@@ -188,7 +207,7 @@ export function CascadiaBoardView({
   const title = thread ? t('cascadiaBoard.threads') : t('cascadiaBoard.notices');
   const newLabel = thread ? t('cascadiaBoard.newThread') : t('cascadiaBoard.newBulletin');
   const draftKey = compose === 'new' ? `new:${kind}` : `reply:${selected?.id ?? ''}`;
-  const canSend = online && pending === null;
+  const canSend = online && !radioBusyBy && pending === null;
 
   function rememberDraft(draft: Draft) {
     setDrafts((previous) => new Map(previous).set(draftKey, draft));
@@ -202,8 +221,9 @@ export function CascadiaBoardView({
     setError('');
   }
   async function run(action: Action, work: () => Promise<unknown>, done: string) {
-    if (busy.current || !online) return;
+    if (busy.current || !online || radioBusyBy) return;
     busy.current = true;
+    onBusyChange?.(true);
     setPending(action);
     setNotice('');
     setError('');
@@ -215,6 +235,7 @@ export function CascadiaBoardView({
       setError(cause instanceof Error ? cause.message : t('cascadiaBoard.failed'));
     } finally {
       busy.current = false;
+      onBusyChange?.(false);
       setPending(null);
     }
   }
@@ -244,40 +265,26 @@ export function CascadiaBoardView({
         setCompose(null);
         setPane('read');
       },
-      t('cascadiaBoard.saved'),
+      t('cascadiaBoard.saved', { board: boardName }),
     );
   }
   const progress =
     pending === 'write'
       ? t('cascadiaBoard.confirming')
       : pending === 'read'
-        ? t('cascadiaBoard.requestingPosts')
+        ? t('cascadiaBoard.requestingPosts', { board: boardName })
         : pending === 'index'
           ? t('cascadiaBoard.requestingIndex')
           : '';
   const stationStatus =
     error ||
     progress ||
+    (radioBusyBy && t('boardHosts.waiting', { board: radioBusyBy })) ||
     (!online && (offlineReason || t('cascadiaBoard.offline'))) ||
     notice ||
     (snapshot.indexFetchedAt[kind] ? t('cascadiaBoard.cachedIndex') : t('cascadiaBoard.noIndex'));
   return (
-    <section
-      className="cascadia-board"
-      data-pane={pane}
-      aria-label={t('chatPanel.cascadiaChan.name')}
-    >
-      <header className="board-banner">
-        <div className="board-brand">
-          <Trees aria-hidden="true" />
-          <h1 aria-label={t('chatPanel.cascadiaChan.name')}>
-            cascadia<em>chan</em>
-          </h1>
-        </div>
-        <span className="board-station">
-          ayanami <span>/ m7</span>
-        </span>
-      </header>
+    <section className="cascadia-board" data-pane={pane} aria-label={boardName}>
       <div className="board-toolbar">
         <nav aria-label={t('cascadiaBoard.sections')}>
           <button
@@ -288,7 +295,7 @@ export function CascadiaBoardView({
               navigate('discussion', null, 'list');
             }}
           >
-            {t('chatPanel.cascadiaChan.discussions')}
+            {t('boardHosts.discussions')}
           </button>
           <button
             type="button"
@@ -298,7 +305,7 @@ export function CascadiaBoardView({
               navigate('bulletin', null, 'list');
             }}
           >
-            {t('chatPanel.cascadiaChan.bulletins')}
+            {t('boardHosts.bulletins')}
           </button>
         </nav>
         <button
@@ -356,7 +363,7 @@ export function CascadiaBoardView({
             <p className="board-hint">
               {snapshot.indexFetchedAt[kind]
                 ? t('cascadiaBoard.emptyIndex')
-                : t('cascadiaBoard.firstRefresh')}
+                : t('cascadiaBoard.firstRefresh', { board: boardName })}
             </p>
           )}
           {snapshot.moreEntries[kind] && (
@@ -386,7 +393,7 @@ export function CascadiaBoardView({
           </button>
           {(selected || compose === 'new') && (
             <div className="board-path">
-              <span>{thread ? '/discussions/' : '/general/'}</span>
+              <span>{boardName}</span>
               {compose !== 'new' && (
                 <span>{posts ? t('cascadiaBoard.cached') : t('cascadiaBoard.indexOnly')}</span>
               )}
@@ -402,6 +409,7 @@ export function CascadiaBoardView({
                   {posts[0] && (
                     <BoardMessage
                       post={posts[0]}
+                      boardName={boardName}
                       label={thread ? t('cascadiaBoard.op') : t('cascadiaBoard.bulletin')}
                     />
                   )}
@@ -415,6 +423,7 @@ export function CascadiaBoardView({
                     <BoardMessage
                       key={index}
                       post={post}
+                      boardName={boardName}
                       label={t('cascadiaBoard.replyNumber', { n: index + 1 })}
                     />
                   ))}
@@ -472,11 +481,12 @@ export function CascadiaBoardView({
           {(compose === 'new' || (compose === 'reply' && selected)) && (
             <BoardComposer
               key={draftKey}
+              boardName={boardName}
               kind={kind}
               id={compose === 'new' ? undefined : selected?.id}
               initial={drafts.get(draftKey) ?? { subject: '', body: '' }}
               pending={pending !== null}
-              online={online}
+              online={online && !radioBusyBy}
               onDraft={rememberDraft}
               onCancel={() => {
                 setCompose(null);

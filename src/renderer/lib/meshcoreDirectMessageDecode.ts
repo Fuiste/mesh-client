@@ -1,6 +1,6 @@
 import { MESHCORE_ROOM_MESSAGE_CHANNEL } from '@/renderer/hooks/meshcore/meshcoreHookPreamble';
 
-import { isCascadiaBoardResponse } from './cascadiaBoardIdentity';
+import { boardResponseKey } from './cascadiaBoardSource';
 import {
   resolveMeshcoreNodeIdFromFourBytePubKeyPrefix,
   resolveMeshcoreNodeIdFromPubKeyPrefix,
@@ -92,6 +92,8 @@ export function decodeMeshcoreDirectMessageEvents(
   raw: DecodeMeshcoreDirectMessageInput,
   nodeIdByPrefix: Map<string, number>,
   roomNodeIds: ReadonlySet<number>,
+  identityId?: string,
+  contactKeys?: Iterable<Uint8Array>,
 ): DomainEvent[] {
   if (raw.txtType === MESHCORE_TXT_TYPE_CLI_COMMAND) {
     return decodeTransportStatusDeviceLog(
@@ -116,8 +118,16 @@ export function decodeMeshcoreDirectMessageEvents(
   }
   const prefix = pubKeyPrefixHex(raw.pubKeyPrefix);
   const senderId = resolveSenderIdFromPrefix(prefix, nodeIdByPrefix);
-  if (isCascadiaBoardResponse(raw.text, prefix, senderId, raw.txtType)) {
-    return [{ type: 'meshcore_board_response', payload: { text: raw.text } }];
+  const publicKey = boardResponseKey(
+    identityId,
+    raw.text,
+    prefix,
+    senderId,
+    raw.txtType,
+    contactKeys,
+  );
+  if (publicKey) {
+    return [{ type: 'meshcore_board_response', payload: { text: raw.text, publicKey } }];
   }
   const isSignedPlain = raw.txtType === MESHCORE_TXT_TYPE_SIGNED_PLAIN;
   if (isSignedPlain && senderId !== 0) {

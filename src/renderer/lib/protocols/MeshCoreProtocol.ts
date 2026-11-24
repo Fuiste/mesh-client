@@ -106,7 +106,7 @@ export class MeshCoreProtocol implements Protocol {
     }
   }
 
-  subscribe(handle: unknown, emit: (event: DomainEvent) => void): () => void {
+  subscribe(handle: unknown, emit: (event: DomainEvent) => void, identityId?: string): () => void {
     const conn = handle as Connection;
     const bus = conn as unknown as MeshCoreEventBus;
 
@@ -132,6 +132,8 @@ export class MeshCoreProtocol implements Protocol {
         },
         nodeIdByPrefix,
         roomNodeIds,
+        identityId,
+        pubKeyByNodeId.values(),
       ).forEach(emit);
     };
     const onChannel = (data: unknown) => {

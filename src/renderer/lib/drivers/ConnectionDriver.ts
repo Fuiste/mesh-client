@@ -244,18 +244,22 @@ export class ConnectionDriver {
 
       const transportId = randomPrefixedId('t');
       const resolvedIdentityId = identityId;
-      const teardown = protocol.subscribe(handle, (event: DomainEvent) => {
-        const slot = this.slots.get(transportId);
-        if (slot) slot.lastDataAt = Date.now();
-        try {
-          packetRouter.dispatch(event, resolvedIdentityId);
-        } catch (err) {
-          console.error(
-            'mcL0821 [ConnectionDriver] packetRouter.dispatch failed:',
-            err instanceof Error ? err.message : String(err),
-          );
-        }
-      });
+      const teardown = protocol.subscribe(
+        handle,
+        (event: DomainEvent) => {
+          const slot = this.slots.get(transportId);
+          if (slot) slot.lastDataAt = Date.now();
+          try {
+            packetRouter.dispatch(event, resolvedIdentityId);
+          } catch (err) {
+            console.error(
+              'mcL0821 [ConnectionDriver] packetRouter.dispatch failed:',
+              err instanceof Error ? err.message : String(err),
+            );
+          }
+        },
+        resolvedIdentityId,
+      );
 
       const transportRef: TransportRef = {
         transportId,

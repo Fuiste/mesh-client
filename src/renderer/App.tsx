@@ -7408,6 +7408,17 @@ function AppContent() {
                                 }
                                 radioLabel={meshcoreRuntime.selfInfo?.name ?? 'MeshCore'}
                                 importContact={meshcorePanelActions.importContactFromQr}
+                                onOpenConnection={() => {
+                                  openSlotPanel('Connection');
+                                }}
+                                onOpenDm={(dmPeer) => {
+                                  openChatFromNotification({
+                                    kind: 'chat',
+                                    protocol: 'meshcore',
+                                    dmPeer,
+                                    channel: null,
+                                  });
+                                }}
                               />
                             </Suspense>
                           </ErrorBoundary>

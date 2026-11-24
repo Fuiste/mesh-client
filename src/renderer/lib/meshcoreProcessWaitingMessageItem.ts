@@ -1,4 +1,4 @@
-import { isCascadiaBoardResponse } from '@/renderer/lib/cascadiaBoardIdentity';
+import { boardResponseKey } from '@/renderer/lib/cascadiaBoardSource';
 import { packetRouter } from '@/renderer/lib/drivers/PacketRouter';
 import { errLikeToLogString } from '@/renderer/lib/errLikeToLogString';
 import {
@@ -91,14 +91,23 @@ export function processMeshcoreWaitingMessageItem(
         nodesDirty = true;
         updatedNodeIds.push(senderId);
       }
+      function* contactKeys() {
+        for (const node of deps.workingNodes.values())
+          if (node.public_key_hex) yield node.public_key_hex;
+      }
+      const publicKey = boardResponseKey(
+        deps.meshcoreIdentityId,
+        d.text,
+        prefix,
+        senderId,
+        d.txtType,
+        contactKeys(),
+      );
       if (isMeshcoreTransportStatusChatLine(d.text)) {
         deps.logTransportLineAsDevice(d.text);
-      } else if (
-        deps.meshcoreIdentityId &&
-        isCascadiaBoardResponse(d.text, prefix, senderId, d.txtType)
-      ) {
+      } else if (deps.meshcoreIdentityId && publicKey) {
         packetRouter.dispatch(
-          { type: 'meshcore_board_response', payload: { text: d.text } },
+          { type: 'meshcore_board_response', payload: { text: d.text, publicKey } },
           deps.meshcoreIdentityId,
         );
       } else if (sender?.hw_model === 'Room') {

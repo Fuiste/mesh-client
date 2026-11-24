@@ -448,7 +448,7 @@ export type DomainEvent =
   | { type: 'meshcore_channel'; payload: MeshcoreChannelEvent }
   | { type: 'meshcore_path_updated'; payload: MeshcorePathUpdatedEvent }
   | { type: 'meshcore_dm_ack'; payload: MeshcoreDmAckEvent }
-  | { type: 'meshcore_board_response'; payload: { text: string } }
+  | { type: 'meshcore_board_response'; payload: { text: string; publicKey: string } }
   | { type: 'meshcore_waiting_messages'; payload: MeshcoreWaitingMessagesEvent }
   | { type: 'meshcore_contact_deleted'; payload: MeshcoreContactDeletedEvent }
   | { type: 'meshcore_contacts_full'; payload: MeshcoreContactsFullEvent }
@@ -588,7 +588,7 @@ export interface Protocol {
   // --- SDK bootstrap (ConnectionDriver calls these) ---
   createDevice(params: TransportParams): Promise<unknown>;
   destroyDevice(handle: unknown): Promise<void>;
-  subscribe(handle: unknown, emit: (event: DomainEvent) => void): () => void;
+  subscribe(handle: unknown, emit: (event: DomainEvent) => void, identityId?: string): () => void;
   /**
    * Optional RPC discovery hook. Protocols that need an active call to learn
    * the device pubkey / nodeNum (MeshCore) implement this; protocols that
