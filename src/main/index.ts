@@ -91,6 +91,7 @@ import {
   type BleScanOwner,
 } from './ble-coexistence-coordinator';
 import { ensureCameraAccess, isAllowedCameraPrivacySettingsUrl } from './cameraAccess';
+import { isCascadiaBuild } from './cascadiaBuild';
 import {
   backfillChannelKeys,
   type ChannelKeyBackfillEntry,
@@ -356,7 +357,9 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 if (process.platform === 'win32') {
-  app.setAppUserModelId('com.meshclient.app');
+  app.setAppUserModelId(
+    isCascadiaBuild() ? 'com.fuiste.meshclient.cascadia' : 'com.meshclient.app',
+  );
 }
 
 /** Trusted Help menu / About credits URLs (static, not user-controlled). */
@@ -1877,7 +1880,7 @@ function createWindow() {
     y: center ? undefined : bounds.y,
     minWidth: 900,
     minHeight: 600,
-    title: 'Mesh Client',
+    title: isCascadiaBuild() ? app.name : 'Mesh Client',
     // Use the helper to select .ico, .icns, or .png automatically
     icon: getAppIconPath(),
     webPreferences: {
@@ -1896,6 +1899,11 @@ function createWindow() {
     },
   });
   mainWindow = win;
+  if (isCascadiaBuild()) {
+    win.on('page-title-updated', (event) => {
+      event.preventDefault();
+    });
+  }
   rendererMemoryAutoSampler?.stop();
   rendererMemoryAutoSampler = createRendererMemoryAutoSampler({
     getWindow: () => mainWindow,
@@ -6975,13 +6983,17 @@ void app
         );
       }
 
-      // Register lxm:// deep links (dev + packaged). OS-specific: argv in defaultApp.
-      if (process.defaultApp) {
-        if (process.argv.length >= 2) {
-          app.setAsDefaultProtocolClient('lxm', process.execPath, [path.resolve(process.argv[1])]);
+      // Leave the user's lxm:// handler alone when running the side-by-side Cascadia build.
+      if (!isCascadiaBuild()) {
+        if (process.defaultApp) {
+          if (process.argv.length >= 2) {
+            app.setAsDefaultProtocolClient('lxm', process.execPath, [
+              path.resolve(process.argv[1]),
+            ]);
+          }
+        } else {
+          app.setAsDefaultProtocolClient('lxm');
         }
-      } else {
-        app.setAsDefaultProtocolClient('lxm');
       }
       const coldStartUrl = findLxmUrlInArgv(process.argv);
       if (coldStartUrl) pendingOpenUrl = coldStartUrl;

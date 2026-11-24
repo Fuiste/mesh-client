@@ -1,9 +1,10 @@
 appId: com.mesh-client.app
 productName: Mesh-client
 protocols:
-  - name: Mesh Client LXMF
-    schemes:
-      - lxm
+  # A singleton lets side-by-side builds override protocols with an empty array.
+  name: Mesh Client LXMF
+  schemes:
+    - lxm
 directories:
   buildResources: resources
   output: release

@@ -587,6 +587,12 @@
     "tooltipLabel": "Использование канала"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "меню",
+      "discussions": "обсуждения",
+      "bulletins": "объявления"
+    },
     "channelMenuAria": "Параметры {{name}}",
     "removeChannel": "Удалить канал",
     "removeChannelAria": "Удалить {{name}}",

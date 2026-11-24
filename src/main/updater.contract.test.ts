@@ -54,6 +54,7 @@ const harness = vi.hoisted(() => {
     send: vi.fn(),
     openExternal: vi.fn<(url: string) => Promise<void>>(),
     fetchAllGithubReleases: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(),
+    productName: 'Mesh-client',
     isPackaged: true,
     isOnline: true,
     electronUpdaterMissing: false,
@@ -65,6 +66,9 @@ const harness = vi.hoisted(() => {
 vi.mock('electron', () => ({
   app: {
     getVersion: () => '5.32.0',
+    get name() {
+      return harness.productName;
+    },
     get isPackaged() {
       return harness.isPackaged;
     },
@@ -180,6 +184,7 @@ beforeEach(() => {
   harness.autoUpdater.quitAndInstall.mockReset();
   harness.autoUpdater.autoDownload = undefined;
   harness.autoUpdater.autoInstallOnAppQuit = undefined;
+  harness.productName = 'Mesh-client';
   harness.isPackaged = true;
   harness.isOnline = true;
   harness.electronUpdaterMissing = false;
@@ -194,6 +199,38 @@ afterEach(() => {
   Object.defineProperty(process, 'platform', { value: REAL_PLATFORM, configurable: true });
   Reflect.deleteProperty(cjsRequire.cache, ELECTRON_UPDATER_PATH);
   vi.restoreAllMocks();
+});
+
+describe('Cascadia manual updates', () => {
+  it('checks only the fork and opens its release page without fetching or installing an executable', async () => {
+    harness.productName = 'Mesh Client Cascadia';
+    harness.appSettings.set('autoUpdateDownloadEnabled', '1');
+    harness.fetchAllGithubReleases.mockResolvedValue([NEWER_RELEASE_ROW]);
+    setup('win32');
+
+    await handler('update:check')(trustedEvent);
+    const releases = 'https://github.com/Fuiste/mesh-client/releases';
+    const release = releases + '/tag/v9.9.9';
+    expect(harness.fetchAllGithubReleases).toHaveBeenCalledWith(
+      'Fuiste/mesh-client',
+      'mesh-client/5.32.0',
+    );
+    expect(harness.send).toHaveBeenCalledWith('update:available', {
+      version: '9.9.9',
+      releaseUrl: release,
+      isPackaged: false,
+      isMac: false,
+    });
+    await handler('update:open-releases')(trustedEvent, release);
+    expect(harness.openExternal).toHaveBeenLastCalledWith(release);
+    await handler('update:open-releases')(trustedEvent, NEWER_RELEASE_ROW.html_url);
+    expect(harness.openExternal).toHaveBeenLastCalledWith(releases);
+    await handler('update:download')(trustedEvent);
+    await handler('update:install')(trustedEvent);
+    expect(harness.autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+    expect(harness.autoUpdater.downloadUpdate).not.toHaveBeenCalled();
+    expect(harness.autoUpdater.quitAndInstall).not.toHaveBeenCalled();
+  });
 });
 
 describe('updater behavior (electron-updater path)', () => {

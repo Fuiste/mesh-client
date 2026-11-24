@@ -1,0 +1,19 @@
+{
+  "extends": "./electron-builder.yml",
+  "appId": "com.fuiste.meshclient.cascadia",
+  "productName": "Mesh Client Cascadia",
+  "extraMetadata": {
+    "name": "mesh-client-cascadia",
+    "productName": "Mesh Client Cascadia"
+  },
+  "protocols": [],
+  "nsis": {
+    "uninstallUrlHelp": "https://github.com/Fuiste/mesh-client/issues"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "Fuiste",
+    "repo": "mesh-client",
+    "releaseType": "draft"
+  }
+}

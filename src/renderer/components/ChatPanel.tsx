@@ -104,7 +104,10 @@ import { formatShortRelativeAgo } from '@/renderer/lib/formatShortRelativeAgo';
 import { useIconTrigger, useParentIconTrigger } from '@/renderer/lib/icons/iconMotionContext';
 import { meshcomCallForNodeId } from '@/renderer/lib/meshcom/meshcomCallRegistry';
 import { meshcomBodyBudgetForChat } from '@/renderer/lib/meshcom/meshcomWireLimits';
-import { hasMeshcoreDestinationPubKey } from '@/renderer/lib/meshcore/meshcoreDestinationPubKey';
+import {
+  hasMeshcoreDestinationPubKey,
+  resolveMeshcoreDestinationPubKeyForIdentity,
+} from '@/renderer/lib/meshcore/meshcoreDestinationPubKey';
 import type { MeshcoreQrImportResult } from '@/renderer/lib/meshcore/meshcoreQrIngest';
 import { meshcoreChannelScopeKey } from '@/renderer/lib/meshcoreChannelScope';
 import { MESHCORE_PUBLIC_CHANNEL_INDEX } from '@/renderer/lib/meshcoreConfiguredChatChannels';
@@ -164,6 +167,7 @@ import { getLiveChannelKey } from '@/renderer/stores/liveChannelKeyStore';
 import { CHAT_DOCS_URL } from '@/shared/docsSite';
 import type { ChatExportMessage } from '@/shared/electron-api.types';
 import { formatIsoDate, formatIsoDateTime } from '@/shared/formatIsoDate';
+import { bytesToHex } from '@/shared/hexBytes';
 import { formatMeshtasticNodeId, isMeshtasticBroadcastNodeNum } from '@/shared/nodeNameUtils';
 import { CHAT_COMPACT_CONTINUATION_TIME_GAP_MS } from '@/shared/timeConstants';
 import { touch } from '@/shared/touch';
@@ -346,6 +350,7 @@ function chatPanelIsLinux(): boolean {
 
 /** Last-read key for the Starred list. Distinct from `ch:` / `dm:` thread watermarks. */
 const STARRED_READ_KEY_PREFIX = 'star:';
+const CASCADIACHAN_PUBLIC_KEY = 'e96c285c22edb90b25b6e7b34f1357b4b5cc9ac8d0c79b8606688ca14a162cdf';
 
 /** Toolbar icon button with Electron-friendly HelpTooltip (native `title` does not show). */
 const CHAT_TOOLBAR_BUTTON_BASE =
@@ -3292,6 +3297,13 @@ function ChatPanel({
   });
 
   const isDmMode = viewMode === 'dm' && activeDmNode != null;
+  const isCascadiaChanDm =
+    protocol === 'meshcore' && isDmMode && identityId != null
+      ? () => {
+          const key = resolveMeshcoreDestinationPubKeyForIdentity(identityId, activeDmNode);
+          return key != null && bytesToHex(key) === CASCADIACHAN_PUBLIC_KEY;
+        }
+      : undefined;
   const nowMs = useNowMs(isDmMode);
   const dmNodeName = activeDmNode != null ? getDmLabel(activeDmNode) : '';
 
@@ -5736,6 +5748,7 @@ function ChatPanel({
           connectionType={connectionType}
           isMqttOnly={isMqttOnly}
           isDmMode={isDmMode}
+          isCascadiaChanDm={isCascadiaChanDm}
           disabled={
             composerDisabled || (dmOnlyChat && activeDmNode == null) || reticulumDmMissingLxmf
           }

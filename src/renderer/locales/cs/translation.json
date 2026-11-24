@@ -579,6 +579,12 @@
     "tooltipLabel": "Využití kanálu"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "nabídka",
+      "discussions": "diskuse",
+      "bulletins": "oznámení"
+    },
     "channelMenuAria": "Možnosti pro {{name}}",
     "removeChannel": "Odebrat kanál",
     "removeChannelAria": "Odebrat {{name}}",

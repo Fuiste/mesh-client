@@ -261,8 +261,13 @@ try {
   });
 
   /** Repo-wide gate: every `SOURCE_POLICY_RULES` include under src/ stays clean. */
-  it('reports no violations against the current tree', () => {
-    const violations = collectSourcePolicyViolations();
-    expect(violations).toEqual([]);
-  });
+  // Scanning the full source tree on Windows can exceed the 5s unit-test default.
+  it(
+    'reports no violations against the current tree',
+    () => {
+      const violations = collectSourcePolicyViolations();
+      expect(violations).toEqual([]);
+    },
+    process.platform === 'win32' ? 30_000 : undefined,
+  );
 });

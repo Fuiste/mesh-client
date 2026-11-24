@@ -571,6 +571,12 @@
     "tooltipLabel": "渠道利用率"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "菜单",
+      "discussions": "讨论",
+      "bulletins": "公告"
+    },
     "channelMenuAria": "{{name}} 的选项",
     "removeChannel": "移除频道",
     "removeChannelAria": "移除 {{name}}",

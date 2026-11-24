@@ -12,6 +12,7 @@ import {
 import { isNetworkClassFailure } from '@/shared/networkFailure';
 
 import { remapAppImageLauncherEnv } from './appImageLauncherEnv';
+import { isCascadiaBuild } from './cascadiaBuild';
 import { getDatabase } from './database';
 import { sanitizeLogMessage } from './log-service';
 import { assertIpcSender } from './validate-ipc-sender';
@@ -32,8 +33,13 @@ export function getCheckNowFromMenu(): (() => void) | null {
   return checkFromMenu;
 }
 
-const REPO = 'Colorado-Mesh/mesh-client';
-const RELEASES_URL = `https://github.com/${REPO}/releases`;
+function releaseRepo(): string {
+  return isCascadiaBuild() ? 'Fuiste/mesh-client' : 'Colorado-Mesh/mesh-client';
+}
+
+function releasesUrl(): string {
+  return `https://github.com/${releaseRepo()}/releases`;
+}
 
 /** `app_settings` key backing the App → Updates "download automatically" toggle. */
 export const AUTO_UPDATE_DOWNLOAD_SETTING_KEY = 'autoUpdateDownloadEnabled';
@@ -61,11 +67,11 @@ function readAutoUpdateDownloadEnabled(): boolean {
 }
 
 function releaseUrlForVersion(version: string): string {
-  return `${RELEASES_URL}/tag/v${version}`;
+  return `${releasesUrl()}/tag/v${version}`;
 }
 
 async function fetchGithubReleases(): Promise<GithubReleaseRow[]> {
-  return fetchAllGithubReleases(REPO, `mesh-client/${app.getVersion()}`);
+  return fetchAllGithubReleases(releaseRepo(), `mesh-client/${app.getVersion()}`);
 }
 
 function emitOffline(send: SendFn, detail: string): void {
@@ -86,7 +92,7 @@ function reportCheckFailure(send: SendFn, err: unknown, warnPrefix: string): voi
 
 async function openAppReleasePage(send: SendFn): Promise<void> {
   try {
-    await shell.openExternal(lastAppReleaseUrl ?? RELEASES_URL);
+    await shell.openExternal(lastAppReleaseUrl ?? releasesUrl());
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     const safe = sanitizeLogMessage(msg);
@@ -120,10 +126,12 @@ function registerGithubReleaseApiHandlers(send: SendFn, uiReportsPackaged: boole
       const latest = pickLatestPublishedRelease(releases);
       const localVersion = app.getVersion();
       if (latest && semverGt(latest.version, localVersion)) {
-        lastAppReleaseUrl = latest.releaseUrl;
+        lastAppReleaseUrl = isCascadiaBuild()
+          ? releaseUrlForVersion(latest.version)
+          : latest.releaseUrl;
         send('update:available', {
           version: latest.version,
-          releaseUrl: latest.releaseUrl,
+          releaseUrl: lastAppReleaseUrl,
           isPackaged: uiReportsPackaged,
           isMac: process.platform === 'darwin',
         });
@@ -329,13 +337,15 @@ export function initUpdater(win: BrowserWindow): void {
     win.webContents.send(channel, payload);
   };
 
-  if (app.isPackaged) {
+  lastAppReleaseUrl = null;
+  if (app.isPackaged && !isCascadiaBuild()) {
     const ok = registerElectronUpdaterHandlers(send);
     if (!ok) {
       console.warn('mcL0318 [updater] falling back to GitHub Releases API (packaged build)');
       registerGithubReleaseApiHandlers(send, true);
     }
   } else {
+    // The renderer offers "View release" for manual updates in dev and Cascadia.
     registerGithubReleaseApiHandlers(send, false);
   }
 
@@ -358,10 +368,15 @@ export function initUpdater(win: BrowserWindow): void {
           sanitizeLogMessage(e instanceof Error ? e.message : String(e)),
         );
       }
+      const releasePage = releasesUrl();
       const target =
-        parsedUrl?.hostname === 'github.com' && parsedUrl.protocol === 'https:'
+        parsedUrl?.hostname === 'github.com' &&
+        parsedUrl.protocol === 'https:' &&
+        (!isCascadiaBuild() ||
+          parsedUrl.href === releasePage ||
+          parsedUrl.href.startsWith(releasePage + '/'))
           ? url!
-          : RELEASES_URL;
+          : releasePage;
       await shell.openExternal(target);
     } catch (err) {
       console.error(

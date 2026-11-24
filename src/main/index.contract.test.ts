@@ -12,6 +12,23 @@ const PRELOAD_SOURCE = readFileSync(
 );
 const TCP_BRIDGE_SOURCE = readFileSync(joinUnderRoot(__dirname, 'ipc', 'tcp-bridge.ts'), 'utf-8');
 
+describe('side-by-side Cascadia build', () => {
+  it('keeps its own Windows identity and window title and leaves the lxm handler with stock', () => {
+    expect(INDEX_SOURCE).toMatch(
+      /setAppUserModelId\(\s*isCascadiaBuild\(\) \? 'com\.fuiste\.meshclient\.cascadia' : 'com\.meshclient\.app'/,
+    );
+    expect(INDEX_SOURCE).toContain("title: isCascadiaBuild() ? app.name : 'Mesh Client'");
+    expect(INDEX_SOURCE).toMatch(
+      /if \(isCascadiaBuild\(\)\) \{\s*win\.on\('page-title-updated', \(event\) => \{\s*event\.preventDefault\(\)/,
+    );
+    const registration = INDEX_SOURCE.slice(
+      INDEX_SOURCE.indexOf('if (!isCascadiaBuild())'),
+      INDEX_SOURCE.indexOf('const coldStartUrl'),
+    );
+    expect(registration.match(/app\.setAsDefaultProtocolClient\('lxm'/g)).toHaveLength(2);
+  });
+});
+
 describe('renderer origin cutover (source contract)', () => {
   it('registers the secure renderer protocol before creating a window', () => {
     const privileges = INDEX_SOURCE.slice(

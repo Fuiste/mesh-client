@@ -719,6 +719,12 @@
     "meshcom": "MeshCom"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "menu",
+      "discussions": "discussions",
+      "bulletins": "bulletins"
+    },
     "channelMenuAria": "Options for {{name}}",
     "removeChannel": "Remove channel",
     "removeChannelAria": "Remove {{name}}",

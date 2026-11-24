@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { spawnSync } from 'node:child_process';
 
+import { getConfig } from 'app-builder-lib/out/util/config/config';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
@@ -29,6 +30,28 @@ function expectSemverParts(
 }
 
 describe('Windows packaging (contract)', () => {
+  it('keeps the resolved Cascadia package and link handlers separate from stock', async () => {
+    const stock = await getConfig(REPO_ROOT, join(REPO_ROOT, 'electron-builder.yml'), null);
+    const fork = await getConfig(
+      REPO_ROOT,
+      join(REPO_ROOT, 'electron-builder.cascadia.json'),
+      null,
+    );
+    expect([stock.protocols].flat()).toContainEqual({ name: 'Mesh Client LXMF', schemes: ['lxm'] });
+    expect(fork.protocols).toEqual([]);
+    expect(fork.appId).toBe('com.fuiste.meshclient.cascadia');
+    expect(fork.productName).toBe('Mesh Client Cascadia');
+    expect(fork.extraMetadata).toMatchObject({
+      name: 'mesh-client-cascadia',
+      productName: fork.productName,
+    });
+    expect(fork.publish).toMatchObject({
+      provider: 'github',
+      owner: 'Fuiste',
+      repo: 'mesh-client',
+    });
+  });
+
   it('does not use afterPack resedit or longPathAware manifest embedding', () => {
     const yml = readFileSync(join(REPO_ROOT, 'electron-builder.yml'), 'utf-8');
     expect(yml).not.toContain('afterPack:');
@@ -118,7 +141,7 @@ describe('Windows packaging (contract)', () => {
     expect(yml).toContain('normalize-win-setup-artifact-names.mjs');
 
     const installerNsh = readFileSync(join(REPO_ROOT, 'resources', 'installer.nsh'), 'utf-8');
-    expect(installerNsh).toContain('Mesh-client.exe');
+    expect(installerNsh).toContain('IfFileExists "$INSTDIR\\${PRODUCT_FILENAME}.exe"');
     expect(installerNsh).toContain('customInstall');
 
     const verifyScript = readFileSync(

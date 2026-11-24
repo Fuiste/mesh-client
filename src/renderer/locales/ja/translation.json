@@ -571,6 +571,12 @@
     "tooltipLabel": "チャネル使用率"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "メニュー",
+      "discussions": "ディスカッション",
+      "bulletins": "お知らせ"
+    },
     "channelMenuAria": "{{name}} のオプション",
     "removeChannel": "チャンネルを削除",
     "removeChannelAria": "{{name}} を削除",

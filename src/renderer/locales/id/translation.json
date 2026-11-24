@@ -571,6 +571,12 @@
     "tooltipLabel": "Pemanfaatan saluran"
   },
   "chatPanel": {
+    "cascadiaChan": {
+      "name": "cascadiachan",
+      "menu": "menu",
+      "discussions": "diskusi",
+      "bulletins": "pengumuman"
+    },
     "channelMenuAria": "Opsi untuk {{name}}",
     "removeChannel": "Hapus saluran",
     "removeChannelAria": "Hapus {{name}}",

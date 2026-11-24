@@ -7,10 +7,16 @@
 
 !include "${BUILD_RESOURCES_DIR}\schema-upgrade-notice.nsh"
 
+!ifdef UNINSTALL_URL_HELP
+  !define INSTALL_HELP_URL "${UNINSTALL_URL_HELP}"
+!else
+  !define INSTALL_HELP_URL "github.com/Colorado-Mesh/mesh-client/issues"
+!endif
+
 !macro customInstall
-  IfFileExists "$INSTDIR\Mesh-client.exe" finish_ok 0
+  IfFileExists "$INSTDIR\${PRODUCT_FILENAME}.exe" finish_ok 0
     SetErrorLevel 2
-    MessageBox MB_ICONSTOP|MB_OK "Installation incomplete: Mesh-client.exe is missing from $INSTDIR.$\r$\nPlease report this at github.com/Colorado-Mesh/mesh-client/issues." /SD IDOK
+    MessageBox MB_ICONSTOP|MB_OK "Installation incomplete: ${PRODUCT_FILENAME}.exe is missing from $INSTDIR.$\r$\nPlease report this at ${INSTALL_HELP_URL}." /SD IDOK
     Abort
   finish_ok:
   !ifdef MESH_CLIENT_SCHEMA_UPGRADE_NOTICE

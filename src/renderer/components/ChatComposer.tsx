@@ -111,7 +111,7 @@ import MentionAutocomplete, {
   type MentionCandidate,
 } from './MentionAutocomplete';
 import { useToast } from './Toast';
-import { INPUT_BOX_SM_CLASS, INPUT_CLASS } from './ui/formClasses';
+import { chipClass, INPUT_BOX_SM_CLASS, INPUT_CLASS } from './ui/formClasses';
 
 /**
  * Shared amber advisory pill used by the MeshCore composer (non-blocking "sending too fast"
@@ -188,6 +188,12 @@ export interface ChatComposerSendOpts {
   floodScopeOverride?: string;
 }
 
+const CASCADIACHAN_COMMANDS = [
+  ['chatPanel.cascadiaChan.menu', '?'],
+  ['chatPanel.cascadiaChan.discussions', '!d'],
+  ['chatPanel.cascadiaChan.bulletins', '!cb general'],
+] as const;
+
 export interface ChatComposerProps {
   protocol: MeshProtocol;
   viewKey: string;
@@ -209,6 +215,8 @@ export interface ChatComposerProps {
   sendingButtonLabel?: string;
   variant?: 'chat' | 'room';
   isDmMode?: boolean;
+  /** Recheck the full public key at click time before sending a board command. */
+  isCascadiaChanDm?: () => boolean;
   replyTo?: ChatMessage | null;
   onReplyClear?: () => void;
   mentionNodes?: Map<number, MeshNode>;
@@ -301,6 +309,7 @@ export function ChatComposer({
   sendingButtonLabel,
   variant = 'chat',
   isDmMode = false,
+  isCascadiaChanDm,
   replyTo,
   onReplyClear,
   mentionNodes,
@@ -365,6 +374,7 @@ export function ChatComposer({
     right: number;
   } | null>(null);
   const [sending, setSending] = useState(false);
+  const boardCommandPending = useRef(false);
   const [chatActionError, setChatActionError] = useState<{
     message: string;
     viewKey: string;
@@ -1562,6 +1572,30 @@ export function ChatComposer({
   const floodScopeChevronTooltipProps = floodScopeMenuOpen ? { 'data-no-instant-tooltip': '' } : {};
 
   const scheduleSendAllowed = Boolean(allowScheduledSend && queueOutboxProp);
+  const boardCommandDisabled = disabled || sending || !isConnected || isMqttOnly;
+  async function sendBoardCommand(command: string) {
+    if (boardCommandDisabled || boardCommandPending.current || !isCascadiaChanDm?.()) return;
+    boardCommandPending.current = true;
+    setSending(true);
+    setChatActionError(null);
+    const tooFast = isMeshcoreSendTooFast();
+    try {
+      await onSendChunk(command, {
+        floodScopeOverride:
+          floodScopeOverride === FLOOD_SCOPE_OVERRIDE_UNSCOPED
+            ? ''
+            : floodScopeOverride || undefined,
+      });
+      finishSendCadence(tooFast);
+      onSendSuccess?.();
+    } catch (err) {
+      // catch-no-log-ok The composer displays the translated send failure in this DM.
+      setChatActionError({ message: translateChatSendError(t, err), viewKey });
+    } finally {
+      boardCommandPending.current = false;
+      setSending(false);
+    }
+  }
   const showSendSplit = showFloodScopeOverride || scheduleSendAllowed;
   // Same for Meshtastic, MeshCore, and Reticulum: Send later needs a non-empty sendable draft.
   const scheduleSendDisabled =
@@ -1587,6 +1621,26 @@ export function ChatComposer({
 
   return (
     <div className={className}>
+      {isCascadiaChanDm?.() && (
+        <details className="text-muted mb-1 text-xs">
+          <summary className="hover:text-ink-100 w-fit cursor-pointer rounded px-1 py-1 focus-visible:outline">
+            {t('chatPanel.cascadiaChan.name')}
+          </summary>
+          <div className="mb-1 flex flex-wrap gap-1 px-1">
+            {CASCADIACHAN_COMMANDS.map(([label, command]) => (
+              <button
+                key={command}
+                type="button"
+                className={`${chipClass(false, 'sm')} focus-visible:outline disabled:opacity-50`}
+                disabled={boardCommandDisabled}
+                onClick={() => void sendBoardCommand(command)}
+              >
+                {t(label)}
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
       {showGifModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <button
